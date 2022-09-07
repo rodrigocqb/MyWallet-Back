@@ -62,7 +62,7 @@ app.post("/sign-up", async (req, res) => {
     }
     await db
       .collection("users")
-      .insertOne({ name, email, password, trasactions: [] });
+      .insertOne({ name, email, password, transactions: [] });
     res.sendStatus(201);
   } catch (error) {
     res.status(500).send(error);
@@ -124,14 +124,30 @@ app.post("/transactions", async (req, res) => {
       { _id: session.userId },
       {
         $set: {
-          trasactions: [
-            ...user.trasactions,
+          transactions: [
+            ...user.transactions,
             { value, description, type, date: new Date() },
           ],
         },
       }
     );
     res.sendStatus(201);
+  } catch (error) {
+    res.status(500).send(error);
+    return;
+  }
+});
+
+app.get("/transactions", async (req, res) => {
+  const token = req.headers.authorization?.replace("Bearer ", "");
+  try {
+    const session = await db.collection("sessions").findOne({ token });
+    if (!session) {
+      res.sendStatus(401);
+      return;
+    }
+    const user = await db.collection("users").findOne({ _id: session.userId });
+    res.send(user.transactions);
   } catch (error) {
     res.status(500).send(error);
     return;

@@ -30,6 +30,12 @@ const signInSchema = joi.object({
   password: joi.string().required(),
 });
 
+const transactionSchema = joi.object({
+  value: joi.number().required(),
+  description: joi.string().required(),
+  type: joi.string().valid("receipt", "payment").required(),
+});
+
 async function isUserRegistered(email) {
   const exists = db.collection("users").findOne({ email });
   return exists;
@@ -55,7 +61,9 @@ app.post("/sign-up", async (req, res) => {
       res.sendStatus(409);
       return;
     }
-    await db.collection("users").insertOne({ name, email, password });
+    await db
+      .collection("users")
+      .insertOne({ name, email, password, trasactions: [] });
     res.sendStatus(201);
   } catch (error) {
     res.status(500).send(error);
@@ -87,6 +95,44 @@ app.post("/sign-in", async (req, res) => {
     const token = uuid();
     await db.collection("sessions").insertOne({ userId: user._id, token });
     res.status(200).send({ name: user.name, token });
+  } catch (error) {
+    res.status(500).send(error);
+    return;
+  }
+});
+
+app.post("/transactions", async (req, res) => {
+  let { description } = req.body;
+  const { value, type } = req.body;
+  const token = req.headers.authorization?.replace("Bearer ", "");
+  description = stripHtml(description).result.trim();
+  const validation = transactionSchema.validate(
+    { value, description, type },
+    { abortEarly: false }
+  );
+  if (validation.error) {
+    const errors = validation.error.details.map((detail) => detail.message);
+    res.status(422).send(errors);
+    return;
+  }
+  try {
+    const session = await db.collection("sessions").findOne({ token });
+    if (!session) {
+      res.sendStatus(401);
+    }
+    const user = await db.collection("users").findOne({ _id: session.userId });
+    await db.collection("users").updateOne(
+      { _id: session.userId },
+      {
+        $set: {
+          trasactions: [
+            ...user.trasactions,
+            { value, description, type, date: dayjs() },
+          ],
+        },
+      }
+    );
+    res.sendStatus(201);
   } catch (error) {
     res.status(500).send(error);
     return;

@@ -77,7 +77,7 @@ app.post("/sign-in", async (req, res) => {
   try {
     const user = await db.collection("users").findOne({ email });
     if (!user) {
-      res.sendStatus(404);
+      res.status(404).send({ error: "User not found" });
       return;
     }
     if (!bcrypt.compareSync(password, user.password)) {

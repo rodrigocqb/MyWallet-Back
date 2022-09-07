@@ -3,7 +3,6 @@ import cors from "cors";
 import { MongoClient } from "mongodb";
 import joi from "joi";
 import { stripHtml } from "string-strip-html";
-import dayjs from "dayjs";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import dotenv from "dotenv";
@@ -127,7 +126,7 @@ app.post("/transactions", async (req, res) => {
         $set: {
           trasactions: [
             ...user.trasactions,
-            { value, description, type, date: dayjs() },
+            { value, description, type, date: new Date() },
           ],
         },
       }

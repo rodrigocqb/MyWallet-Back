@@ -5,6 +5,7 @@ import joi from "joi";
 import { stripHtml } from "string-strip-html";
 import dayjs from "dayjs";
 import bcrypt from "bcrypt";
+import { v4 as uuid } from "uuid";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -20,6 +21,11 @@ mongoClient.connect().then(() => {
 
 const signUpSchema = joi.object({
   name: joi.string().required(),
+  email: joi.string().email().required(),
+  password: joi.string().required(),
+});
+
+const signInSchema = joi.object({
   email: joi.string().email().required(),
   password: joi.string().required(),
 });
@@ -51,6 +57,36 @@ app.post("/sign-up", async (req, res) => {
     }
     await db.collection("users").insertOne({ name, email, password });
     res.sendStatus(201);
+  } catch (error) {
+    res.status(500).send(error);
+    return;
+  }
+});
+
+app.post("/sign-in", async (req, res) => {
+  const { email, password } = req.body;
+  const validation = signInSchema.validate(
+    { email, password },
+    { abortEarly: false }
+  );
+  if (validation.error) {
+    const errors = validation.error.details.map((detail) => detail.message);
+    res.status(422).send(errors);
+    return;
+  }
+  try {
+    const user = await db.collection("users").findOne({ email });
+    if (!user) {
+      res.sendStatus(404);
+      return;
+    }
+    if (!bcrypt.compareSync(password, user.password)) {
+      res.sendStatus(401);
+      return;
+    }
+    const token = uuid();
+    await db.collection("sessions").insertOne({ userId: user._id, token });
+    res.status(200).send({ name: user.name, token });
   } catch (error) {
     res.status(500).send(error);
     return;

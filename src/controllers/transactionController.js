@@ -11,7 +11,13 @@ async function createTransaction(req, res) {
         $set: {
           transactions: [
             ...user.transactions,
-            { value, description, type, date: new Date() },
+            {
+              id: user.transactions.length + 1,
+              value,
+              description,
+              type,
+              date: new Date(),
+            },
           ],
         },
       }

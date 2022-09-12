@@ -1,33 +1,15 @@
-import joi from "joi";
-import { stripHtml } from "string-strip-html";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import db from "../database/db.js";
 
-const signUpSchema = joi.object({
-  name: joi.string().required(),
-  email: joi.string().email().required(),
-  password: joi.string().required(),
-});
-
-const signInSchema = joi.object({
-  email: joi.string().email().required(),
-  password: joi.string().required(),
-});
+async function isUserRegistered(email) {
+  const exists = db.collection("users").findOne({ email });
+  return exists;
+}
 
 async function registerUser(req, res) {
-  let { name, email, password } = req.body;
-  name = stripHtml(name).result.trim();
-  email = email.trim();
-  const validation = signUpSchema.validate(
-    { name, email, password },
-    { abortEarly: false }
-  );
-  if (validation.error) {
-    const errors = validation.error.details.map((detail) => detail.message);
-    res.status(422).send(errors);
-    return;
-  }
+  let { password } = res.locals.user;
+  const { name, email } = res.locals.user;
   password = bcrypt.hashSync(password, 10);
   try {
     const exists = await isUserRegistered(email);
@@ -47,17 +29,8 @@ async function registerUser(req, res) {
 
 async function login(req, res) {
   const { email, password } = req.body;
-  const validation = signInSchema.validate(
-    { email, password },
-    { abortEarly: false }
-  );
-  if (validation.error) {
-    const errors = validation.error.details.map((detail) => detail.message);
-    res.status(422).send(errors);
-    return;
-  }
   try {
-    const user = await db.collection("users").findOne({ email });
+    const user = await isUserRegistered(email);
     if (!user) {
       res.status(404).send({ error: "User not found" });
       return;

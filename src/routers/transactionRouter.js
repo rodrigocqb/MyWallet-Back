@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createTransaction,
+  deleteTransaction,
   getUserTransactions,
 } from "../controllers/transactionController.js";
 import checkToken from "../middlewares/checkTokenMiddleware.js";
@@ -12,6 +13,7 @@ const router = express.Router();
 router.use(checkToken);
 
 router.get("/transactions", getUserTransactions);
+router.delete("/transactions/:id", deleteTransaction);
 
 router.use(transactionSanitization);
 router.use(transactionSchemaValidation);

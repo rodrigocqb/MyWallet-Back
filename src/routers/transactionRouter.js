@@ -2,6 +2,7 @@ import express from "express";
 import {
   createTransaction,
   deleteTransaction,
+  editTransaction,
   getUserTransactions,
 } from "../controllers/transactionController.js";
 import checkToken from "../middlewares/checkTokenMiddleware.js";
@@ -19,5 +20,6 @@ router.use(transactionSanitization);
 router.use(transactionSchemaValidation);
 
 router.post("/transactions", createTransaction);
+router.put("/transactions/:id", editTransaction);
 
 export default router;

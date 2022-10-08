@@ -19,6 +19,7 @@ This is an web application with which lots of people can manage their own expens
 By using this app any user can learn how they've been using their money and always keep track of their balance.
 
 ## Technologies
+The following tools and frameworks were used in the construction of the back end of this project:
 <p>
   <img style='margin: 5px;' src='https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white'>
   <img style='margin: 5px;' src='https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB'>

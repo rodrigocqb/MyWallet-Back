@@ -15,6 +15,7 @@ This is an web application with which lots of people can manage their own expens
 - Edit receipt
 - Delete transaction
 - Logout
+- Persistent login
 
 By using this app any user can learn how they've been using their money and always keep track of their balance.
 
